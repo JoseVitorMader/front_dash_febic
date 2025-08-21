@@ -5,7 +5,8 @@ import {
   push,
   onValue,
   update,
-  runTransaction
+  runTransaction,
+  remove
 } from 'firebase/database';
 
 /* Data model (collection: goals)
@@ -20,7 +21,7 @@ import {
   }
 */
 
-const initialForm = { team: '', title: '', target: '' };
+const initialForm = { team: '', title: '', target: '', color: '#1e90ff' };
 
 export default function GoalManager() {
   const [form, setForm] = useState(initialForm);
@@ -59,6 +60,7 @@ export default function GoalManager() {
           team: form.team,
           title: form.title,
           target: Number(form.target),
+          color: form.color,
           updatedAt: Date.now()
         });
       } else {
@@ -67,6 +69,7 @@ export default function GoalManager() {
           title: form.title,
           target: Number(form.target),
           current: 0,
+          color: form.color,
           createdAt: Date.now(),
           updatedAt: Date.now()
         });
@@ -79,16 +82,28 @@ export default function GoalManager() {
 
   const startEdit = goal => {
     setEditingId(goal.id);
-    setForm({ team: goal.team, title: goal.title, target: goal.target });
+    setForm({ team: goal.team, title: goal.title, target: goal.target, color: goal.color || '#1e90ff' });
   };
 
   const incrementProgress = async (id, amount) => {
     try {
       const currentRef = ref(rtdb, `goals/${id}/current`);
       await runTransaction(currentRef, current => {
-        return (current || 0) + amount;
+        const next = (current || 0) + amount;
+        return next < 0 ? 0 : next;
       });
       await update(ref(rtdb, `goals/${id}`), { updatedAt: Date.now() });
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const deleteGoal = async () => {
+    if (!editingId) return;
+    if (!window.confirm('Tem certeza que deseja excluir esta meta?')) return;
+    try {
+      await remove(ref(rtdb, `goals/${editingId}`));
+      reset();
     } catch (err) {
       setError(err.message);
     }
@@ -113,8 +128,14 @@ export default function GoalManager() {
             <input name="target" type="number" value={form.target} onChange={handleChange} placeholder="100" />
           </label>
         </div>
+        <div>
+          <label>Cor da Equipe<br />
+            <input name="color" type="color" value={form.color} onChange={handleChange} />
+          </label>
+        </div>
         <button type="submit">{editingId ? 'Salvar Alterações' : 'Adicionar Meta'}</button>
         {editingId && <button type="button" onClick={reset}>Cancelar</button>}
+        {editingId && <button type="button" onClick={deleteGoal} style={{background:'#c0392b'}}>Excluir</button>}
       </form>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
@@ -145,8 +166,9 @@ export default function GoalManager() {
                   <td>{pct}%</td>
                   <td>
                     <button onClick={() => startEdit(g)}>Editar</button>
-                    <div className="increment-buttons">
-                      {[1,5,10].map(a => <button key={a} type="button" onClick={() => incrementProgress(g.id, a)}>+{a}</button>)}
+                    <div className="increment-buttons" style={{display:'flex',flexWrap:'wrap',maxWidth:150}}>
+                      {[1,5,10].map(a => <button key={'+'+a} type="button" onClick={() => incrementProgress(g.id, a)}>+{a}</button>)}
+                      {[-1,-5,-10].map(a => <button key={a} type="button" onClick={() => incrementProgress(g.id, a)}>{a}</button>)}
                     </div>
                   </td>
                 </tr>

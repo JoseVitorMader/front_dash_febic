@@ -1,4 +1,4 @@
-// Firebase initialization and helpers
+
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { getDatabase } from 'firebase/database';
@@ -14,10 +14,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-// Realtime Database instance
 const rtdb = getDatabase(app);
 
-// Analytics only if supported (e.g., browsers, not SSR)
 let analytics;
 (async () => {
   if (await isSupported()) {

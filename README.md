@@ -1,6 +1,97 @@
-# Getting Started with Create React App
+# Dashboard de Metas (React + Firebase Realtime Database + Power BI)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplicação React para cadastro e acompanhamento de metas de equipes em tempo real usando Firebase Realtime Database, com pipeline opcional para Power BI (streaming quase em tempo real).
+
+## Funcionalidades
+- Criar meta (equipe, título, valor alvo)
+- Editar meta existente
+- Incrementos rápidos (+1, +5, +10) com transação no Realtime Database
+- Barra de progresso e porcentagem
+- Atualização instantânea via listeners
+
+## Estrutura de dados (Realtime Database)
+```
+/goals/{goalId} = {
+	team: string,
+	title: string,
+	target: number,
+	current: number,
+	createdAt: epoch_ms,
+	updatedAt: epoch_ms
+}
+```
+
+## Rodar localmente
+```powershell
+npm install
+npm start
+```
+
+## Integração Power BI (Melhor abordagem: Dataset de Streaming + Cloud Function)
+
+### 1. Criar dataset de streaming no Power BI
+1. Acesse Power BI Service > Workspace desejado.
+2. New > Streaming dataset > API.
+3. Campos (marque Historic data analysis se quiser histórico):
+	 - goalId (Texto)
+	 - team (Texto)
+	 - title (Texto)
+	 - target (Número)
+	 - current (Número)
+	 - percent (Número)
+	 - updatedAt (DateTime)
+4. Salve e copie a URL de push (endpoint). Exemplo: `https://api.powerbi.com/beta/.../pushdataset/rows?key=...`
+
+### 2. Configurar Cloud Functions
+Instale Firebase CLI e inicialize funções (já existe pasta `functions/`).
+```powershell
+firebase login
+firebase use <SEU_PROJECT_ID>
+cd functions
+npm install
+```
+
+### 3. Guardar a URL do Power BI como segredo
+Crie um arquivo temporário com a URL (ou digite diretamente):
+```powershell
+echo https://api.powerbi.com/beta/.../rows?key=SEU_KEY > pbi_url.txt
+firebase functions:secrets:set PBI_PUSH_URL --data-file=pbi_url.txt
+```
+
+### 4. Deploy das funções
+No diretório raiz (onde está firebase.json, se ainda não existir rode `firebase init functions` antes):
+```powershell
+firebase deploy --only functions
+```
+
+### 5. Testar fluxo
+1. Abra o app e crie/edite/incremente uma meta.
+2. No Power BI Service, adicione um tile de streaming (Add tile > Custom streaming data > escolha dataset > Campos). Deve atualizar em segundos.
+
+### 6. Relatório analítico (opcional)
+Se marcou Historic data analysis, você pode criar um relatório a partir do dataset (Workspace > Datasets > Create report) e usar métricas:
+```
+Progresso % = DIVIDE(SUM(goals[current]), SUM(goals[target]))
+Restante = SUM(goals[target]) - SUM(goals[current])
+```
+
+## Alternativas de integração
+- BigQuery: replicar via função e conectar com DirectQuery (mais escalável).
+- Power Query REST direto: menor complexidade, sem “puxar” em segundos.
+
+## Segurança
+- Ajuste regras do Realtime Database para restringir escrita se necessário.
+- Nunca exponha a URL do push do Power BI no frontend.
+- Use segredos (`functions:secrets`) para variáveis sensíveis.
+
+## Cloud Function usada
+Arquivo: `functions/index.js` exporta `goalToPowerBI` que envia cada alteração em `/goals/{goalId}`.
+
+---
+
+# Create React App (documentação padrão)
+
+Este projeto foi criado com [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
 

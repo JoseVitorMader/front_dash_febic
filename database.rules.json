@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "goals": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
