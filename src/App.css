@@ -22,4 +22,36 @@ form.goal-form button { align-self:flex-end; }
 .increment-buttons { display:flex; flex-wrap:wrap; }
 .goal-manager table button { padding:4px 8px; }
 .goal-manager { animation: fadeIn .4s ease; }
+
+/* Dashboard responsive layout */
+.dashboard-grid-1 { display:grid; gap:24px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
+.dashboard-grid-2 { display:grid; gap:24px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); margin-top:32px; }
+.chart-card { background:#18212b; padding:16px; border-radius:10px; }
+
+@media (max-width: 760px) {
+  .dashboard-grid-2 { grid-template-columns:1fr; }
+  .dashboard-grid-1 { grid-template-columns:1fr; }
+  .chart-card { padding:14px; }
+  h1 { font-size:20px !important; }
+  h2 { font-size:15px !important; }
+  h3 { font-size:14px !important; }
+  table.goal-table { font-size:12px; }
+  button { padding:6px 10px; font-size:13px; }
+}
+
+@media (max-width:500px){
+  .chart-card { padding:12px; }
+  .dashboard-grid-1, .dashboard-grid-2 { gap:16px; }
+  table.goal-table th, table.goal-table td { padding:4px 6px; }
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0);} }

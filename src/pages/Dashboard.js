@@ -8,7 +8,6 @@ import {
 } from 'recharts';
 import '../App.css';
 
-
 export default function Dashboard() {
   const [goals, setGoals] = useState([]);
   const [page, setPage] = useState(0);
@@ -18,7 +17,7 @@ export default function Dashboard() {
     const unsub = onValue(goalsRef, snap => {
       const val = snap.val() || {};
       const list = Object.entries(val).map(([id, data]) => ({ id, ...data }));
-      list.sort((a,b)=> a.team.localeCompare(b.team));
+      list.sort((a,b)=> (a.team||'').localeCompare(b.team||''));
       setGoals(list);
     });
     return () => unsub();
@@ -31,7 +30,7 @@ export default function Dashboard() {
     return { targetSum, currentSum, pct };
   }, [goals]);
 
-  const pageSize = 3;
+  const pageSize = 5; // exibirá 5 equipes por página
   const pages = Math.ceil(goals.length / pageSize) || 1;
   const pageGoals = goals.slice(page*pageSize, page*pageSize+pageSize);
 
@@ -65,10 +64,10 @@ export default function Dashboard() {
   ];
 
   return (
-    <div className="App">
+    <div className="App" style={{padding:24}}>
       <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
         <h1 style={{margin:0,fontSize:24}}>Dashboard de Progresso</h1>
-        <Link to="/" style={{color:'#1e90ff'}}>Gerenciar Metas</Link>
+        <Link to="/" style={{color:'#1e90ff'}}>Início</Link>
       </header>
 
       <section style={{background:'#18212b',padding:16,borderRadius:10,marginBottom:28}}>
@@ -83,8 +82,8 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(320px,1fr))',gap:24,marginTop:32}}>
-        <div style={{background:'#18212b',padding:16,borderRadius:10}}>
+      <section className="dashboard-grid-1" style={{marginTop:32}}>
+        <div className="chart-card">
           <h3 style={{marginTop:0,fontSize:15}}>Barras Empilhadas (Atual vs Restante)</h3>
           {stackedData.length === 0 ? <p style={{opacity:.7}}>Sem dados.</p> : (
             <ResponsiveContainer width="100%" height={260}>
@@ -101,7 +100,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
           )}
         </div>
-        <div style={{background:'#18212b',padding:16,borderRadius:10}}>
+  <div className="chart-card">
           <h3 style={{marginTop:0,fontSize:15}}>Distribuição Geral</h3>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
@@ -113,7 +112,7 @@ export default function Dashboard() {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div style={{background:'#18212b',padding:16,borderRadius:10}}>
+  <div className="chart-card">
           <h3 style={{marginTop:0,fontSize:15}}>Participação por Equipe (Atual)</h3>
           {teamShareData.length === 0 ? <p style={{opacity:.7}}>Sem dados.</p> : (
             <ResponsiveContainer width="100%" height={260}>
@@ -129,9 +128,9 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <section style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,alignItems:'stretch'}}>
-        <div style={{background:'#18212b',padding:16,borderRadius:10,minHeight:320}}>
-          <h3 style={{marginTop:0,fontSize:15}}>Comparativo Atual vs Meta (3 equipes)</h3>
+      <section className="dashboard-grid-2">
+        <div className="chart-card" style={{minHeight:320}}>
+          <h3 style={{marginTop:0,fontSize:15}}>Comparativo Atual vs Meta (5 equipes)</h3>
           {barData.length === 0 ? <p style={{opacity:.7}}>Sem dados.</p> : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={barData} margin={{top:10,right:10,left:0,bottom:0}}>
@@ -150,7 +149,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
           )}
         </div>
-        <div style={{background:'#18212b',padding:16,borderRadius:10,minHeight:320}}>
+  <div className="chart-card" style={{minHeight:320}}>
           <h3 style={{marginTop:0,fontSize:15}}>Percentual por Equipe</h3>
           {radialData.length === 0 ? <p style={{opacity:.7}}>Sem dados.</p> : (
             <ResponsiveContainer width="100%" height={260}>
